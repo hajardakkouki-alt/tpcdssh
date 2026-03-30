@@ -1,12 +1,15 @@
 name: CI/CD FLASK DOCKER
+
 on:
   push:
     branches: 
       - main
+
 jobs:
   ci:
     name: Build and test
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -20,24 +23,37 @@ jobs:
         run: pip install -r requirements.txt
 
   cd:
-    name: docker build and deploy
+    name: Docker build and deploy
     runs-on: ubuntu-latest
     needs: ci
+
     steps:
-      - name: Checkout repository+
+      - name: Checkout repository
         uses: actions/checkout@v3
-        
-      - name: set up docker
+
+      - name: Set up Docker
         uses: docker/setup-buildx-action@v2
-      - name: login to docker hub
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build and push Docker image
         run: |
           docker build -t hajardk/flask_devops_demo:latest .
           docker push hajardk/flask_devops_demo:latest
+
       - name: Deploy via SSH
         run: |
-          echo "${{ secrets.SSH_KEY }}" > key.pem  chmod 600 key.pem ssh -i key.pem  -o StrictHostKeyChecking=no "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" "powershell -Executionpolicy Bypass -File 'C:\Users\HP\Desktop\tpcdssh\deploy.ps1' -DockerUser '${{ secrets.DOCKERHUB_USERNAME }}' -DockerToken ${{ secrets.DOCKERHUB_TOKEN }}"
+          # créer la clé SSH
+          echo "${{ secrets.SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+          # test connexion SSH
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo CONNECTED"
+
+          # exécution du script PowerShell sur Windows
+          ssh -i key.pem -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} ^
+          "powershell -ExecutionPolicy Bypass -File C:\\Users\\HP\\Desktop\\tpcdssh\\deploy.ps1 -DockerUser '${{ secrets.DOCKERHUB_USERNAME }}' -DockerToken '${{ secrets.DOCKERHUB_TOKEN }}'"
