@@ -36,8 +36,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build and push Docker image
         run: |
-          docker build -t usernameDocker/flask_devops_demo:latest .
-          docker push usernameDocker/flask_devops_demo:latest
+          docker build -t hajardk/flask_devops_demo:latest .
+          docker push hajardk/flask_devops_demo:latest
       - name: Deploy via SSH
         run: |
           echo "${{ secrets.SSH_KEY }}" > key.pem
@@ -46,4 +46,3 @@ jobs:
            "powershell -Executionpolicy Bypass -File 
             'C:\Users\HP\Desktop\tpcdssh\deploy.ps1' -DockerUser '${{ secrets.DOCKERHUB_USERNAME }}' 
             -DockerToken ${{ secrets.DOCKERHUB_TOKEN }}"
-            
